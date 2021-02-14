@@ -1,0 +1,210 @@
+---
+title: "2019~2020 서울 민원 STM"
+output: html_document
+---
+
+## 라이브러리
+
+```{r, message = F}
+# setwd("G:/.shortcut-targets-by-id/16Ku1iuJ2ATA8voVnPtC-AEyeogI1v07g/2101_Dasan_Covid")
+
+library(reticulate)
+library(stm)
+library(stminsights)
+library(tm)
+library(data.table)
+library(tidyverse)
+library(lubridate)
+library(readxl)
+
+py_config()
+```
+
+## 데이터 로드 및 전처리
+
+```{r}
+load("./코로나민원/df_covid.RData")
+
+# 필요없는 컬럼 삭제
+df <- df[,.(datetime,delimiter,CN)]
+
+# POSIXct to Date
+df$datetime <- as_date(df$datetime)
+
+# 명목 변수 (코로나 전후)
+df$delimiter <- as.factor(df$delimiter)
+
+# data.frame 타입으로 변환
+df <- data.frame(df)
+
+# 토큰 리스트 처리
+df$CN <- map_chr(df$CN,str_c,collapse='  ')
+
+# 날짜순 정렬(오름차순)
+df <- df %>% arrange(datetime)
+
+# days 컬럼 추가(첫날 기준으로 소요기간)
+df$days <- as.integer(difftime(df$datetime, df$datetime[1],units='days') + 1)
+
+# 데이터 확인
+summary(df)
+```
+
+```{r}
+# seoul_covid <- read.csv("seoul_covid_num.csv",fileEncoding = 'utf-8')
+# 
+# seoul_covid$date <- as_date(seoul_covid$date)
+```
+
+```{r}
+library(COVID19)
+kr_covid <- covid19('KR')
+kr_covid$confirmed_daily <- c(1,diff(kr_covid$confirmed))
+```
+
+```{r}
+# kr_covid <- kr_covid %>% mutate(confirmed_peak = case_when(
+#   confirmed_daily>=100 ~'100명 이상',
+#   TRUE ~'100명 미만'
+# ))
+# kr_covid$confirmed_peak <- as.factor(kr_covid$confirmed_peak)
+```
+
+```{r}
+# df <- left_join(df,seoul_covid,c('datetime'='date'))
+# left_join(df,kr_covid %>% select(date,confirmed_daily),c('datetime'='date'))
+```
+
+```{r}
+# 전국 코로나 일일 확진자 자료 inner_join
+df <- inner_join(df,kr_covid %>% select(date,confirmed_daily),c('datetime'='date'))
+df <- df %>% select(-c(id, delimiter))
+```
+
+```{r}
+df$confirmed_daily <- log1p(df$confirmed_daily)
+df$days <- df$days-2 # 1일부터 시작하게 함
+```
+
+## STM (구조적 토픽 모델)
+
+```{r}
+## textProcessor 활용
+myprocess <- textProcessor(df$CN, metadata = df,wordLengths=c(2,Inf),lowercase = F,
+                           removenumbers = F, removepunctuation = F, removestopwords = F, stem = F,
+                           customstopwords = c('습니다','합니다','있는','하고','하는','존경하는','신고위치','제가','하여','2020','드렸','드립니다','한다','한','서울','되어')
+                           ,custompunctuation = c('|'))
+myprocess
+length(myprocess$docs.removed)
+```
+
+```{r}
+## STM 용으로 자료 변환
+#최소 문서 500개 이상에서 등장한 단어 활용
+out <- prepDocuments(myprocess$documents, myprocess$vocab, myprocess$meta,lower.thresh = 500)
+```
+
+```{r}
+#### 최적 K(토픽개수) 찾기
+# daily_days_K <- searchK(out$documents, out$vocab, K = c(6:15),
+#                                 prevalence =~confirmed_daily + s(days),
+#                                 data = out$meta, init.type="Spectral"
+#                                   ,cores=15)
+```
+
+```{r}
+stm <- stm(out$documents, out$vocab, K=10,
+              prevalence=~confirmed_daily + s(days),
+              data=out$meta, init.type="Spectral",seed=2020,
+              verbose = F)
+```
+
+```{r}
+# 모델링 완료된 변수 로드
+load('dasan_covid_STM.RData')
+```
+
+```{r}
+summary(stm)
+```
+
+```{r}
+plot(stm,type='summary',labeltype = 'frex',n=5)
+```
+
+토픽별 대표 문헌
+
+```{r}
+findThoughts(stm,texts=out$meta$CN,topics=c(3,8,6,5,9),n=3)
+```
+
+```{r}
+stm_effect <-  estimateEffect(1:10 ~confirmed_daily+s(days),
+                                 stm, meta = out$meta, uncertainty = "Global")
+
+summary(stm_effect, topics=c(1:10))
+```
+
+```{r}
+# 코로나 관련 민원(3,8,6,5,9) 만 시각화
+plot.estimateEffect(stm_effect,model=stm, covariate = "days", 
+                    topics = c(3,8,6,5,9), method = "continuous")
+```
+
+```{r}
+plot.estimateEffect(stm_effect,model=stm, covariate = "days",
+                    topics = c(3,8,6,5,9), method = "continuous",
+                    printlegend = T, xaxt = "n", xlab='2020년',
+                    labeltype = 'custom',
+                    custom.labels = c('T3:방역수칙 미준수 우려','T8:코로나 확산 우려','T6:대중교통 마스크 착용','T5:코로나 검사와 격리','T9:소상공인 지원'))
+
+
+monthseq <- seq(from=as.Date('2020-01-22'), to=as.Date('2021-01-01'),by='month')
+monthnames <- months(monthseq)
+axis(1,at=as.numeric(monthseq) - min(as.numeric(monthseq)),labels=monthnames)
+```
+
+```{r}
+#### 시간에 따른 토픽 비율 변화
+stm_label<- labelTopics(stm, n = 10)
+stm_custom_label <- c('T3: 방역수칙 미준수 우려','T8: 코로나 확산 우려','T6: 대중교통 마스크 착용','T5: 코로나 검사와 격리','T9: 재난지원금 지원')
+
+par(mfrow=c(2,3))
+j <- 1
+for (i in c(3,8,6,5,9))
+{
+  plot(stm_effect, "days", method = "continuous", topics = i, printlegend = F,
+  main = stm_custom_label[j], xaxt = "n")
+  
+  monthseq <- seq(from=as.Date('2020-01-22'), to=as.Date('2021-01-01'),by='month')
+monthnames <- months(monthseq)
+axis(1,at=as.numeric(monthseq) - min(as.numeric(monthseq)),labels=monthnames)
+  
+  j <- j+1
+  #main =  paste('topic', i,paste(stm_label$frex[i,1:4], collapse = ", "),sep=' ')
+}
+```
+
+```{r}
+# 일일 확진자수가 통계적으로 유의한 3,8,9 토픽만 시각화
+plot.estimateEffect(stm_effect,model=stm, covariate = "confirmed_daily", 
+                    topics =c(3,8,9), method = "continuous", 
+                    xlab='log(일일 확진자수+1)',labeltype='custom',
+                    custom.labels = c('T3:방역수칙 미준수 우려','T8:코로나 확산 우려','T9:재난지원금 지원')
+                    )
+```
+
+```{r}
+# plot.estimateEffect(stm_k10_effect, covariate = "confirmed_peak", 
+#                     topics = c(1:10), method = "difference",
+#                     model = stm_k10, # to show labels alongside
+#                     main = '',
+#                     cov.value1 = "100명 이상", cov.value2 = "100명 미만",
+#                     xlab = "US <----------------> China", xlim = c(-.4, .4),
+#                     labeltype = "frex", n = 4, 
+#                     width = 100,  verbose.labels = F)
+```
+
+```{r}
+plot(topicCorr(stm))
+```
