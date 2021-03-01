@@ -6,7 +6,12 @@
 
 ## dasan.ipynb
 ## dasan_new.ipynb
++ 전처리 관련 코드
++ 불용어 제거
++ 기초통계량 확인
 ## word2vec.ipynb
++ 코로나 19 관련 민원 추출
++ word2vec과 pca를 활용한 시각화
 ## bert_naver_movie.ipynb
 ## 민원텍스트_감정분석.ipynb
 
