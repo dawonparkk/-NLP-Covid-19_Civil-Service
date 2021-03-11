@@ -10,7 +10,7 @@
 + 전처리 관련 코드
 + 불용어 제거
 + 기초통계량 확인
-+ 예시1) 연간 서울시 접수민원의 변화 ![image](https://user-images.githubusercontent.com/60343930/110743674-c43f4080-827b-11eb-92a0-f40b08ae9085.png)
++ 기초 통계량 시각화 자료 예시 ![image](https://user-images.githubusercontent.com/60343930/110743674-c43f4080-827b-11eb-92a0-f40b08ae9085.png)
 ### 3) word2vec.ipynb
 + 코로나 19 관련 민원 추출
 + word2vec과 pca를 활용한 시각화
@@ -18,7 +18,15 @@
 ### 5) 민원텍스트_감정분석.ipynb
 
 ## 2. 참여자
+#### 1. 과제 책임자
+- 김병준(성균관대 인터랙션사이언스학과 박사과정)
+- 김도연
+- 김주영
+- 박다원
 
+#### 2. 참여 연구진
+- 박건철(서울디지털재단 데이터혁신팀장)
+- 
 ## 3. 보도자료
 - [서울특별시-김학준] https://www.seoul.go.kr/news/news_report.do#view/333709
 - [뉴스로-김미소] https://han.gl/C1cep
