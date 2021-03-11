@@ -5,17 +5,17 @@
 + 건수 : 약 450만
 
 ## 1. 코드 설명
-### dasan.ipynb
-### dasan_new.ipynb
+### 1) dasan.ipynb
+### 2) dasan_new.ipynb
 + 전처리 관련 코드
 + 불용어 제거
 + 기초통계량 확인
 + ![image](https://user-images.githubusercontent.com/60343930/110743674-c43f4080-827b-11eb-92a0-f40b08ae9085.png)
-### word2vec.ipynb
+### 3) word2vec.ipynb
 + 코로나 19 관련 민원 추출
 + word2vec과 pca를 활용한 시각화
-### bert_naver_movie.ipynb
-### 민원텍스트_감정분석.ipynb
+### 4) bert_naver_movie.ipynb
+### 5) 민원텍스트_감정분석.ipynb
 
 ## 2. 참여자
 
