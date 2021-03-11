@@ -27,7 +27,7 @@
 
 #### 2. 참여 연구진
 - 박건철(서울디지털재단 데이터혁신팀장)
-- 
+
 ## 3. 보도자료
 - [서울특별시-김학준] https://www.seoul.go.kr/news/news_report.do#view/333709
 - [뉴스로-김미소] https://han.gl/C1cep
