@@ -4,11 +4,7 @@
 + 기간 : 2019.01.01 ~ 2020.12.31
 + 건수 : 약 450만
 
-### 보도자료 
-- [서울특별시-김학준] https://www.seoul.go.kr/news/news_report.do#view/333709
-- [뉴스로-김미소] https://han.gl/C1cep
-
-## 코드 설명
+## 1. 코드 설명
 ### dasan.ipynb
 ### dasan_new.ipynb
 + 전처리 관련 코드
@@ -20,3 +16,9 @@
 + word2vec과 pca를 활용한 시각화
 ### bert_naver_movie.ipynb
 ### 민원텍스트_감정분석.ipynb
+
+## 2. 참여자
+
+## 3. 보도자료
+- [서울특별시-김학준] https://www.seoul.go.kr/news/news_report.do#view/333709
+- [뉴스로-김미소] https://han.gl/C1cep
