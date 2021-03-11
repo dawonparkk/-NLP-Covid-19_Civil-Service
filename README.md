@@ -12,6 +12,8 @@
 + 불용어 제거
 + 기초통계량 확인
 - ![톹계량 ](https://user-images.githubusercontent.com/60343930/110743674-c43f4080-827b-11eb-92a0-f40b08ae9085.png)
+
+
 ### 3) word2vec.ipynb
 + 코로나 19 관련 민원 추출
 + word2vec과 pca를 활용한 시각화
